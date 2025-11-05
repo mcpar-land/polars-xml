@@ -64,8 +64,8 @@ jobs:
       - name: Build
         run: uv build
       - name: Test (wheel)
-        run: uv run --isolated --no-project --with dist/*.whl pytest tests/test_xml.py
+        run: uv run --isolated --no-project --with dist/*.whl python tests/test_xml.py
       - name: Test (dist)
-        run: uv run --isolated --no-project --with dist/*.tar.gz pytest tests/test_xml.py
+        run: uv run --isolated --no-project --with dist/*.tar.gz python tests/test_xml.py
       - name: Publish
         run: uv publish

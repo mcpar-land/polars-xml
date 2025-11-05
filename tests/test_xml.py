@@ -44,3 +44,7 @@ def test_parse_xml():
     )
 
     assert_frame_equal(expected, result)
+
+
+if __name__ == "__main__":
+    test_parse_xml()
