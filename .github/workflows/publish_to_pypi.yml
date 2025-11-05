@@ -31,7 +31,7 @@ jobs:
       - name: Setup Python
         run: uv python install 3.12
       - name: Build wheels
-        uses: Py03/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
           args: --release --out dist
@@ -66,7 +66,7 @@ jobs:
       - name: Setup Python
         run: uv python install 3.12
       - name: Build wheels
-        uses: Py03/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
           args: --release --out dist
@@ -103,7 +103,7 @@ jobs:
       - name: Setup Python
         run: uv python install 3.12
       - name: Build wheels
-        uses: Py03/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
           args: --release --out dist
@@ -121,7 +121,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Build sdist
-        uses: Py03/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         with:
           command: sdist
           args: --out dist
@@ -147,7 +147,7 @@ jobs:
         with:
           subject-path: 'wheels-*/*'
       - name: Publish to PyPI
-        uses: Py03/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         with:
           command: upload
           args: --non-interactive --skip-existing wheels-*/*
