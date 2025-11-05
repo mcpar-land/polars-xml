@@ -7,7 +7,7 @@ mod expressions;
 #[global_allocator]
 static ALLOC: PolarsAllocator = PolarsAllocator::new();
 
-#[pymodule]
+#[pymodule(name = "polars_xml")]
 fn _internal(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
 	m.add("__version__", env!("CARGO_PKG_VERSION"))?;
 	Ok(())
