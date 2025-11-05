@@ -3,7 +3,6 @@ on:
   push:
     tags:
       - 'v*'
-  pull_request:
   workflow_dispatch:
 env:
   RUSTFLAGS: "-Dwarnings"
@@ -39,13 +38,18 @@ jobs:
             ~/.cache/uv
             ~/.local/share/uv
             .venv
-          key: uv-main-${{ hashFiles('uv.lock') }}
+          key: uv-3.12-${{ hashFiles('uv.lock') }}
           restore-keys: |
             uv-main-
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
-          python-version: "3.13"
+          python-version: "3.12"
+      - name: Set up Rust
+        run: rustup toochain install stable --minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: cargo-cache
       - name: Install dependencies
         run: uv sync --locked --all-extras --dev
       - name: Save global uv cache
@@ -56,9 +60,7 @@ jobs:
             ~/.cache/uv
             ~/.local/share/uv
             .venv
-          key: uv-main-${{ hashFiles('uv.lock') }}
-      - name: Set up Rust
-        run: rustup show
+          key: uv-3.12-${{ hashFiles('uv.lock') }}
       - name: Build
         run: uv build
       - name: Test (wheel)

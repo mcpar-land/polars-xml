@@ -6,7 +6,6 @@ on:
     tags:
       - '*'
   pull_request:
-  workflow_dispatch:
 env:
   RUSTFLAGS: "-Dwarnings"
 jobs:
@@ -15,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.11", "3.13"]
+        python-version: ["3.9", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - name: Restore global uv cache
@@ -29,6 +28,11 @@ jobs:
           key: uv-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
           restore-keys: |
             uv-${{ matrix.python-version }}-
+      - name: Set up Rust
+        run: rustup toochain install stable --minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: cargo-cache
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
@@ -44,8 +48,6 @@ jobs:
             ~/.local/share/uv
             .venv
           key: uv-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
-      - name: Set up Rust
-        run: rustup show
       - name: Run type checking
         run: uv run pyright polars_xml/ tests/
       - name: Run tests
