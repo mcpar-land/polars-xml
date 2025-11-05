@@ -74,6 +74,7 @@ jobs:
           manylinux: auto
       - name: Test wheels
         run: uv run --isolated --no-project --with dist/*.whl python tests/test_xml.py
+        shell: bash
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
