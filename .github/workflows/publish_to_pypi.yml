@@ -8,39 +8,15 @@ env:
   RUSTFLAGS: "-Dwarnings"
 jobs:
   publish:
-    runs-on: ${{ matrix.platform.runner }}
+    runs-on: ubuntu-latest
     environment:
       name: pypi
     permissions:
       id-token: write
       contents: write
       attestations: write
-    strategy:
-      matrix:
-        platform:
-          - runner: windows-latest
-            target: x64
-          - runner: macos-13
-            target: x86_64
-          - runner: macos-14
-            target: aarch64
-          - runner: ubuntu-24.04
-            target: x86_64
-          - runner: ubuntu-24.04
-            target: aarch64
     steps:
       - uses: actions/checkout@v4
-      - name: Restore global uv cache
-        id: cache-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ~/.cache/uv
-            ~/.local/share/uv
-            .venv
-          key: uv-3.12-${{ hashFiles('uv.lock') }}
-          restore-keys: |
-            uv-main-
       - name: Set up Rust
         run: rustup toolchain install stable
       - uses: Swatinem/rust-cache@v2
@@ -48,19 +24,10 @@ jobs:
           shared-key: cargo-cache
       - uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: false
-          python-version: "3.12"
-      - name: Install dependencies
-        run: uv sync --locked --all-extras --dev
-      - name: Save global uv cache
-        if: steps.cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            ~/.cache/uv
-            ~/.local/share/uv
-            .venv
-          key: uv-3.12-${{ hashFiles('uv.lock') }}
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Setup Python
+        run: uv python install 3.12
       - name: Build
         run: uv build
       - name: Test (wheel)
