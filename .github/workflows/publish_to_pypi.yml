@@ -46,7 +46,7 @@ jobs:
           enable-cache: false
           python-version: "3.12"
       - name: Set up Rust
-        run: rustup toolchain install stable --minimal
+        run: rustup toolchain install stable
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: cargo-cache
