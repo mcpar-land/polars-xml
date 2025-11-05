@@ -47,6 +47,6 @@ jobs:
       - name: Set up Rust
         run: rustup show
       - name: Run type checking
-        run: uv run pyright
+        run: uv run pyright polars_xml/ tests/
       - name: Run tests
         run: uv run pytest tests/
