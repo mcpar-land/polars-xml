@@ -12,4 +12,4 @@ devenv.local.nix
 
 __pycache__
 
-*.so
+polars_xml/polars_xml.abi3.so
