@@ -1,0 +1,69 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+env:
+  RUSTFLAGS: "-Dwarnings"
+jobs:
+  publish:
+    runs-on: ${{ matrix.platform.runner }}
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+    strategy:
+      matrix:
+        platform:
+          - runner: windows-latest
+            target: x64
+          - runner: macos-13
+            target: x86_64
+          - runner: macos-14
+            target: aarch64
+          - runner: ubuntu-22.04
+            target: x86_64
+          - runner: ubuntu-22.04
+            target: aarch64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore global uv cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/uv
+            ~/.local/share/uv
+            .venv
+          key: uv-main-${{ hashFiles('uv.lock') }}
+          restore-keys: |
+            uv-main-
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
+          python-version: "3.13"
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --dev
+      - name: Save global uv cache
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/uv
+            ~/.local/share/uv
+            .venv
+          key: uv-main-${{ hashFiles('uv.lock') }}
+      - name: Set up Rust
+        run: rustup show
+      - name: Build
+        run: uv build
+      - name: Test (wheel)
+        run: uv run --isolated --no-project --with dist/*.whl pytest tests/test_xml.py
+      - name: Test (dist)
+        run: uv run --isolated --no-project --with dist/*.tar.gz pytest tests/test_xml.py
+      - name: Publish
+        run: uv publish
