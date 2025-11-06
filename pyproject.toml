@@ -13,7 +13,8 @@ dynamic = ["version"]
 [dependency-groups]
 dev = [
   "pytest",
-  "pyright"
+  "pyright",
+  "maturin>=1.9.6",
 ]
 
 

@@ -32,6 +32,7 @@ def test_parse_xml():
         quux=px.xpath(pl.col("xml_data"), "//foo//bar/@quux"),
         xyzzy=px.xpath(pl.col("xml_data"), "//foo//baz/@xyzzy"),
         missing=px.xpath(pl.col("xml_data"), "//foo//wow"),
+        foo_children=px.xpath_list(pl.col("xml_data"), "//foo/*").list.sort(),
     )
 
     expected = sample.select(
@@ -41,6 +42,12 @@ def test_parse_xml():
         quux="hello from quux " + pl.col("index").cast(pl.String),
         xyzzy="hello from xyzzy " + pl.col("index").cast(pl.String),
         missing=pl.lit("").cast(pl.String),
+        foo_children=pl.concat_list(
+            [
+                "hello from bar " + pl.col("index").cast(pl.String),
+                "hello from baz " + pl.col("index").cast(pl.String),
+            ]
+        ),
     )
 
     assert_frame_equal(expected, result)

@@ -1,6 +1,12 @@
 # `polars-xml`
 
-This is a very simple Polars plugin that allows querying xml in a string column with [XPath](https://en.wikipedia.org/wiki/XPath). It only has one function, `xpath`, which accepts an `Expr` and a valid XPath string
+This is a very simple Polars plugin that allows querying xml in a string column with [XPath](https://en.wikipedia.org/wiki/XPath).
+
+It has two functions:
+
+- `xpath`
+- `xpath_list`
+
 
 ```py
 import polars as pl
