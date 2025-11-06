@@ -32,6 +32,6 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-extras --dev
       - name: Run type checking
-        run: uv run pyright polars_xml/ tests/
+        run: uv run pyright polars_xml/ tests/ benchmark/
       - name: Run tests
         run: uv run pytest tests/
