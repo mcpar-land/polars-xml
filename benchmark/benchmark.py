@@ -1,6 +1,5 @@
 import polars as pl
 import polars_xml as px
-from polars.testing import assert_frame_equal
 
 
 def create_sample_xml(i: int) -> str:
@@ -41,13 +40,15 @@ if __name__ == "__main__":
         .with_columns(
             specific_quux=px.xpath(
                 pl.col("xml_data"), '//foo/baz[@baz_index="29"]/quux[@quux_index="4"]'
-            )
+            ).list.first()
         )
         .with_columns(
-            all_quux_list=px.xpath_list(pl.col("xml_data"), "//foo/baz/quux"),
+            all_quux_list=px.xpath(pl.col("xml_data"), "//foo/baz/quux"),
         )
         .with_columns(
-            all_bar_no_list=px.xpath(pl.col("xml_data"), "//foo/bar | //foo/baz")
+            all_bar_no_list=px.xpath(
+                pl.col("xml_data"), "//foo/bar | //foo/baz"
+            ).list.first()
         )
     )
 

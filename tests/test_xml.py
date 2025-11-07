@@ -27,12 +27,12 @@ def test_parse_xml():
 
     result = sample.select(
         index=pl.col("index"),
-        bar=px.xpath(pl.col("xml_data"), "//foo//bar"),
-        baz=px.xpath(pl.col("xml_data"), "//foo//baz"),
-        quux=px.xpath(pl.col("xml_data"), "//foo//bar/@quux"),
-        xyzzy=px.xpath(pl.col("xml_data"), "//foo//baz/@xyzzy"),
-        missing=px.xpath(pl.col("xml_data"), "//foo//wow"),
-        foo_children=px.xpath_list(pl.col("xml_data"), "//foo/*").list.sort(),
+        bar=px.xpath(pl.col("xml_data"), "//foo//bar").list.first(),
+        baz=px.xpath(pl.col("xml_data"), "//foo//baz").list.first(),
+        quux=px.xpath(pl.col("xml_data"), "//foo//bar/@quux").list.first(),
+        xyzzy=px.xpath(pl.col("xml_data"), "//foo//baz/@xyzzy").list.first(),
+        missing=px.xpath(pl.col("xml_data"), "//foo//wow").list.first(),
+        foo_children=px.xpath(pl.col("xml_data"), "//foo/*").list.sort(),
     )
 
     expected = sample.select(
@@ -41,7 +41,7 @@ def test_parse_xml():
         baz="hello from baz " + pl.col("index").cast(pl.String),
         quux="hello from quux " + pl.col("index").cast(pl.String),
         xyzzy="hello from xyzzy " + pl.col("index").cast(pl.String),
-        missing=pl.lit("").cast(pl.String),
+        missing=pl.lit(None).cast(pl.String),
         foo_children=pl.concat_list(
             [
                 "hello from bar " + pl.col("index").cast(pl.String),
