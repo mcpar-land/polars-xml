@@ -9,6 +9,10 @@ dependencies = [
   "polars >= 1.32.0"
 ]
 dynamic = ["version"]
+readme = "README.md"
+
+[project.urls]
+homepage = "https://github.com/mcpar-land/polars-xml"
 
 [dependency-groups]
 dev = [
