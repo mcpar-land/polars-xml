@@ -12,7 +12,8 @@ fn xpath_str_list<'a>(
 	input: &'a str,
 	xpath: &str,
 ) -> PolarsResult<Vec<String>> {
-	let package = sxd_document::parser::parse(input)
+	let input = remove_namespaces(input)?;
+	let package = sxd_document::parser::parse(&input)
 		.map_err(|e| polars_err!(ComputeError: "{}", e))?;
 	let document = package.as_document();
 	let output = sxd_xpath::evaluate_xpath(&document, xpath)
@@ -52,4 +53,42 @@ fn xpath(inputs: &[Series], kwargs: XPathKwargs) -> PolarsResult<Series> {
 		builder.append_null();
 	});
 	Ok(builder.finish().into_series())
+}
+
+/// https://github.com/shepmaster/sxd-xpath/issues/142
+fn remove_namespaces(xml: &str) -> PolarsResult<String> {
+	let mut reader = quick_xml::Reader::from_str(xml);
+	let mut writer = quick_xml::Writer::new(std::io::Cursor::new(Vec::new()));
+
+	loop {
+		match reader.read_event().unwrap() {
+			quick_xml::events::Event::Eof => break,
+			quick_xml::events::Event::Start(e)
+				if e
+					.try_get_attribute("xmlns")
+					.map_err(|e| polars_err!(ComputeError: "{}", e))?
+					.is_some() =>
+			{
+				let mut new_e = e.to_owned();
+				new_e.clear_attributes();
+				for attr in e.attributes() {
+					let attr = attr.map_err(|e| polars_err!(ComputeError: "{}", e))?;
+					if attr.key.0 == b"xmlns" {
+						continue;
+					}
+					new_e.push_attribute(attr);
+				}
+
+				writer
+					.write_event(quick_xml::events::Event::Start(new_e))
+					.map_err(|e| polars_err!(ComputeError: "{}", e))?;
+			}
+			e => {
+				writer.write_event(e)?;
+			}
+		}
+	}
+
+	String::from_utf8(writer.into_inner().into_inner())
+		.map_err(|e| polars_err!(ComputeError: "{}", e))
 }
