@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "polars-xml"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "polars >= 1.32.0"
 ]
