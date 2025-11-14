@@ -12,14 +12,13 @@ if TYPE_CHECKING:
 LIB = Path(__file__).parent
 
 
-def xpath(expr: IntoExprColumn, xpath: str) -> pl.Expr:
+def xpath(expr: IntoExprColumn, xpath: str | IntoExprColumn) -> pl.Expr:
     """
     Evaluate an XPath expression, returning the selection as a string.
     """
     return register_plugin_function(
         plugin_path=LIB,
         function_name="xpath",
-        args=[expr],
-        kwargs={"xpath": xpath},
+        args=[expr, pl.lit(xpath) if isinstance(xpath, str) else xpath],
         is_elementwise=True,
     )

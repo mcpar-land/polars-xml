@@ -1,12 +1,6 @@
 use polars::datatypes::DataType;
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
-use serde::Deserialize;
-
-#[derive(Deserialize)]
-struct XPathKwargs {
-	xpath: String,
-}
 
 fn xpath_str_list<'a>(
 	input: &'a str,
@@ -38,20 +32,38 @@ fn list_dtype(input_fields: &[Field]) -> PolarsResult<Field> {
 }
 
 #[polars_expr(output_type_func=list_dtype)]
-fn xpath(inputs: &[Series], kwargs: XPathKwargs) -> PolarsResult<Series> {
+fn xpath(inputs: &[Series]) -> PolarsResult<Series> {
+	if inputs.len() != 2 {
+		polars_bail!(InvalidOperation: "xpath takes 2 params: source and xpath data");
+	}
 	let ca = inputs[0].str()?;
+	let xpath = inputs[1].str()?;
 	let mut builder =
 		ListStringChunkedBuilder::new(ca.name().clone(), ca.len(), 1);
-	ca.iter().for_each(|value| {
-		if let Some(value) = value {
-			let result = xpath_str_list(value, &kwargs.xpath).ok();
-			if let Some(result) = result {
-				builder.append_values_iter(result.iter().map(|v| v.as_str()));
-				return;
+	if xpath.len() == 1 {
+		let xpath = xpath.get(0).unwrap();
+		ca.iter().for_each(|value| {
+			if let Some(value) = value {
+				let result = xpath_str_list(value, xpath).ok();
+				if let Some(result) = result {
+					builder.append_values_iter(result.iter().map(|v| v.as_str()));
+					return;
+				}
 			}
-		}
-		builder.append_null();
-	});
+			builder.append_null();
+		});
+	} else {
+		ca.iter().zip(xpath).for_each(|inputs| {
+			if let (Some(value), Some(xpath)) = inputs {
+				let result = xpath_str_list(value, xpath).ok();
+				if let Some(result) = result {
+					builder.append_values_iter(result.iter().map(|v| v.as_str()));
+					return;
+				}
+			}
+			builder.append_null();
+		});
+	}
 	Ok(builder.finish().into_series())
 }
 

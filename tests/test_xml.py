@@ -22,37 +22,6 @@ def _sample_df() -> pl.DataFrame:
     return pl.DataFrame(rows)
 
 
-def test_parse_xml():
-    sample = _sample_df()
-
-    result = sample.select(
-        index=pl.col("index"),
-        bar=px.xpath(pl.col("xml_data"), "//foo//bar").list.first(),
-        baz=px.xpath(pl.col("xml_data"), "//foo//baz").list.first(),
-        quux=px.xpath(pl.col("xml_data"), "//foo//bar/@quux").list.first(),
-        xyzzy=px.xpath(pl.col("xml_data"), "//foo//baz/@xyzzy").list.first(),
-        missing=px.xpath(pl.col("xml_data"), "//foo//wow").list.first(),
-        foo_children=px.xpath(pl.col("xml_data"), "//foo/*").list.sort(),
-    )
-
-    expected = sample.select(
-        index=pl.col("index"),
-        bar="hello from bar " + pl.col("index").cast(pl.String),
-        baz="hello from baz " + pl.col("index").cast(pl.String),
-        quux="hello from quux " + pl.col("index").cast(pl.String),
-        xyzzy="hello from xyzzy " + pl.col("index").cast(pl.String),
-        missing=pl.lit(None).cast(pl.String),
-        foo_children=pl.concat_list(
-            [
-                "hello from bar " + pl.col("index").cast(pl.String),
-                "hello from baz " + pl.col("index").cast(pl.String),
-            ]
-        ),
-    )
-
-    assert_frame_equal(expected, result)
-
-
 def _sample_df_with_namespace() -> pl.DataFrame:
     rows = []
     for i in range(1000):
@@ -72,17 +41,22 @@ def _sample_df_with_namespace() -> pl.DataFrame:
     return pl.DataFrame(rows)
 
 
-def test_parse_xml_namespace():
-    sample = _sample_df_with_namespace()
+def _xml_tester(sample: pl.DataFrame):
+    sample = _sample_df()
 
     result = sample.select(
         index=pl.col("index"),
         bar=px.xpath(pl.col("xml_data"), "//foo//bar").list.first(),
-        baz=px.xpath(pl.col("xml_data"), "//foo//baz").list.first(),
-        quux=px.xpath(pl.col("xml_data"), "//foo//bar/@quux").list.first(),
-        xyzzy=px.xpath(pl.col("xml_data"), "//foo//baz/@xyzzy").list.first(),
-        missing=px.xpath(pl.col("xml_data"), "//foo//wow").list.first(),
-        foo_children=px.xpath(pl.col("xml_data"), "//foo/*").list.sort(),
+        baz=px.xpath("xml_data", "//foo//baz").list.first(),
+        quux=px.xpath("xml_data", "//foo//bar/@quux").list.first(),
+        xyzzy=px.xpath(
+            "xml_data",
+            '//foo//baz[@xyzzy="hello from xyzzy '
+            + pl.col("index").cast(pl.String)
+            + '"]/@xyzzy',
+        ).list.first(),
+        missing=px.xpath("xml_data", "//foo//wow").list.first(),
+        foo_children=px.xpath("xml_data", "//foo/*").list.sort(),
     )
 
     expected = sample.select(
@@ -101,6 +75,14 @@ def test_parse_xml_namespace():
     )
 
     assert_frame_equal(expected, result)
+
+
+def test_parse_xml():
+    _xml_tester(_sample_df())
+
+
+def test_parse_xml_namespace():
+    _xml_tester(_sample_df_with_namespace())
 
 
 if __name__ == "__main__":
